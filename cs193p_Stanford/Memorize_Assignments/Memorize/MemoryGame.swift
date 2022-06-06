@@ -2,14 +2,15 @@
 //  MemoryGame.swift
 //  Memorize
 //
-//  Created by Adnan Boxwala on 04.06.22.
+//  Created by Adnan Boxwala on 05.06.22.
 //
 
 import Foundation
+import SwiftUI
 
 struct MemoryGame<CardContent> where CardContent: Equatable {
     private(set) var cards: Array<Card>
-    
+    private(set) var score: Int = 0
     private var indexOfTheOneAndOnlyFaceUpCard: Int?
     
     mutating func choose(_ card: Card) {
@@ -21,6 +22,13 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 if cards[chosenIndex].content == cards[potentialMatchIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchIndex].isMatched = true
+                    score += 2
+                } else {
+                    if cards[potentialMatchIndex].isSeen { score -= 1 }
+                    if cards[chosenIndex].isSeen {score -= 1 }
+                    
+                    cards[potentialMatchIndex].isSeen = true
+                    cards[chosenIndex].isSeen = true
                 }
                 indexOfTheOneAndOnlyFaceUpCard = nil
             } else {
@@ -29,11 +37,8 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 }
                 indexOfTheOneAndOnlyFaceUpCard = chosenIndex
             }
-
             cards[chosenIndex].isFaceUp.toggle()
         }
-        
-        print("\(cards)")
     }
     
     init(numberOfPairsOfCards: Int, createCardContent: (Int) -> CardContent) {
@@ -44,12 +49,28 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
             cards.append(Card(content: content, id: pairIndex*2))
             cards.append(Card(content: content, id: pairIndex*2+1))
         }
+        cards.shuffle()
     }
     
     struct Card: Identifiable {
         var isFaceUp: Bool = false
         var isMatched: Bool = false
+        var isSeen: Bool = false
         var content: CardContent
         var id: Int
+    }
+}
+
+struct Theme<CardContent> {
+    let name: String
+    var content: [CardContent]
+    var numberOfPairsOfCards: Int
+    var cardColor: String
+    
+    init(_ name: String, with content: [CardContent], cardColor: String) {
+        self.name = name
+        self.content = content
+        numberOfPairsOfCards = content.count
+        self.cardColor = cardColor
     }
 }
